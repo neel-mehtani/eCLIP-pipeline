@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# SBATCH --nodes=1
+# SBATCH --partition  RM-shared # partition name
+# SBATCH --ntasks-per-node=128
+# SBATCH -t 5:00:00 # hours:minutes runlimit after which job will be killed
+# SBATCH -c 12 # number of cores requested -- this needs to be greater than or equal to the number of core$
+# SBATCH --mem 12G 
+# SBATCH --job-name star_genome_generate # Job name
+# SBATCH -o %j.out # File to which standard out will be written
+# SBATCH -e %j.err # File to which standard err will be written
+group_num="group$1"
+
+cd $PROJECT/../shared/$group_num/PEAKachu
+make readme_rst
+make package
+pip3 install --user dist/PEAKachu-0.2.0.tar.gz
+
+cd ../data/
+
+LINES=$(tail -n +2 sample-links.txt | cut -d '|' -f 1-5)
+declare -a file_array=()
+for LINE in $LINES
+do
+    touch interim.txt
+    echo $LINE>>interim.txt
+    file=$(cut -f1 -d "|" interim.txt)
+    file_array+="$file "
+    rm interim.txt
+done
+echo $file_array
+
+set -x
+
+mkdir peak_results
+cd peak_results
+for FILE in $file_array
+do
+    mkdir $FILE
+    cd $FILE
+    peakachu adaptive -M 200 -m 0.0 -Q 0.05 –t $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.bam
+    cd ../
+done
+
+

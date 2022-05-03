@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# SBATCH --nodes=1
+# SBATCH --partition  RM-shared # partition name
+# SBATCH --ntasks-per-node=128
+# SBATCH -t 5:00:00 # hours:minutes runlimit after which job will be killed
+# SBATCH -c 12 # number of cores requested -- this needs to be greater than or equal to the number of cores you plan to use to run your job
+# SBATCH --mem 12G 
+# SBATCH --job-name star_genome_generate # Job name
+# SBATCH -o %j.out # File to which standard out will be written
+# SBATCH -e %j.err # File to which standard err will be written
+
+group_num="group$1"
+LINES=$(tail -n +2 $PROJECT/../shared/$group_num/data/sample-links.txt | cut -d '|' -f 1-5)
+declare -a file_array=()
+for LINE in $LINES
+do
+    touch interim.txt
+    echo $LINE>>interim.txt
+    file=$(cut -f1 -d "|" interim.txt)
+    file_array+="$file "
+    rm interim.txt
+done
+echo $file_array
+
+set -x
+
+for FILE in $file_array
+do 
+    cd $PROJECT/../shared/$group_num/eclip/bin
+    
+    echo "BARCODE COLLAPSE ..."
+    python barcodecollapsepe.py -o $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDup.bam -m $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDup.metrics -b $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.bam
+
+    echo "SAMTOOLS SORT ..."
+    samtools sort -o $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.bam $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDup.bam
+
+    echo "SAMTOOLS INDEX, MERGE, VIEW ..."
+    samtools index $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.bam
+    samtools merge $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.merged.bam $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.bam
+    samtools index $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.merged.bam
+    samtools view -f 128 -b -o $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.merged.r2.bam $PROJECT/../shared/$group_num/data/K562/$FILE/$FILE.rep2_clip.C01.r1.fq.genome-mappedSo.rmDupSo.merged.bam
+
+done
