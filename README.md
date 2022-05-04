@@ -12,10 +12,10 @@ Listed are the packages and input files required to implement the pipeline. Furt
 
 ### 2.1 Fastq Data
 Usable input data can be found on the ENCODE  website by looking for the ENCORE eCLIP data repository and navigating to ‘File Details for a specific dataset’, which will show replicates of raw sequencing data in a fastq file type for controls and experimental samples. An example is listed below for the RNA-binding protein, RBFOX2 for the K562 experimental cell line. All data inputted into the pipeline must be paired-end library type and are labeled as PE. Many proteins will have multiple biological replicates that should be used. Additionally, under ‘Summary’ details, information about control eCLIP experiments are linked, which will be utilized for ensuring experimental conditions are met. An example of the control for RBFOX2 is listed below.   
----
+```
 RBFOX2 example: https://www.encodeproject.org/files/ENCFF930TLO/
 RBFOX2 control: https://www.encodeproject.org/files/ENCFF495WQA/
----
+```
 The specific samples of interest will be stored in a separate file called “sample-links.txt” with their corresponding url links and name of the files retrieved from that link when called using a wget command in the setup (as shown below).
 
 *** insert image here ***
@@ -90,8 +90,10 @@ Prerequiste 1: Cloning git repo and automating workspace setup
 $ cd $HOME
 $ git clone https://github.com/sriskid/group1-bdip.git
 $ bash ./group1-bdip/setup_script.sh <YOUR-GROUP-NUM>
+```
 
 Prerequiste 2: Creating Conda environments
+```
 $ module load AI/anaconda3-tf1.2020.11
 $ conda config --add channels bioconda
 
