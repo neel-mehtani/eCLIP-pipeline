@@ -86,6 +86,7 @@ Bridges-2 is a supercomputer that provides powerful general-purpose computing, c
 Our pipeline can be installed in the Bridges environment by cloning its git repository (https://github.com/sriskid/group1-bdip.git) after logging into Bridges-2 with your XSEDE credentials on port 2222. Launching the pipeline is based on the assumption that the user has XSEDE credentials and also has a /group_num directory in the $PROJECT/../shared/ workspace, corresponding to your group number. Further, it requires two prerequisites after which the pipeline will be ready to launch. These steps can be accomplished in the following fashion:
 
 Prerequiste 1: Cloning git repo and automating workspace setup
+```
 $ cd $HOME
 $ git clone https://github.com/sriskid/group1-bdip.git
 $ bash ./group1-bdip/setup_script.sh <YOUR-GROUP-NUM>
@@ -105,27 +106,33 @@ $ conda activate preprocess2
 $ conda install -y -c bioconda pysam
 $ conda install -y -c bioconda samtools=1.6
 $ conda deactivate
-  
+```
+
 ### 5. Running the Pipeline
 Here we lay out the detailed outline of how this pipeline is run. However, the code snippets shown here are put in separate scripts that are then called on by a batch script the user runs. This ensures a more efficient, user-friendly approach to using our pipeline. 
 
 The core of our pipeline implementation can be executed in a modular-step wise fashion from top-to-bottom using the following commands to accomplish the following tasks:
 
 Preprocessing - Part 1: 
+```
 $ conda activate preprocess1
 $ sbatch -p RM-shared -t 8:00:00 -n 12 —ntasks-per-node=64 ./group1-bdip/preprocess1.run <YOUR-GROUP-NUM>
 $ conda deactivate
+```
 
 Preprocessing - Part 2:
+```
 $ conda activate preprocess2
 $ sbatch -p RM-shared -t 8:00:00 -n 12 —ntasks-per-node=64 ./group1-bdip/preprocess2.run <YOUR-GROUP-NUM>
 $ conda deactivate
-  
+```
+
 Peak Analysis: 
+```
 $ sbatch -p RM-shared -t 8:00:00 -n 12 —ntasks-per-node=64 ./group1-bdip/peak_call.run <YOUR-GROUP-NUM>
 
 Note: “--ntasks-per-node” is prefixed by two “-”
-
+```
 ### 6. Limitations
 It must be noted that biological sequencing data requires large amounts of storage capacity, which makes it difficult for most parts of this pipeline to be implemented on a local machine. Given the capacity of this pipeline to be utilized for multiple eCLIP datasets, there is a need for a large computational requirement. As such, we highly recommend using a supercomputer cluster, such as BRIDGES-2, to carry out all parts of the pipeline for a streamlined approach. Furthermore, the appropriate number of threads can be optimized to ensure maximum efficiency when carrying out heavy computing operations, such as the genome alignment step. 
 
